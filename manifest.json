@@ -1,26 +1,15 @@
 {
-  "name": "Три в ряд — Match-3",
-  "short_name": "Match-3",
-  "description": "Классическая игра «три в ряд» с уровнями, таймером и целями",
-  "start_url": "./",
-  "scope": "./",
+  "name": "Три в ряд — Match 3",
+  "short_name": "Match3",
+  "description": "Собирай три и более кристалла в ряд! / Match three or more gems in a row!",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#ff6b9d",
   "orientation": "portrait",
-  "categories": ["games", "puzzle", "entertainment"],
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "lang": "ru",
   "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

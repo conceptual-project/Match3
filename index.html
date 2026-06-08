@@ -12,7 +12,7 @@
             content="black-translucent"
         />
         <meta name="apple-mobile-web-app-title" content="Три в ряд" />
-        <title>ТРИ В РЯД — MATCH-3</title>
+        <title>ТРИ В РЯД</title>
         <style>
             * {
                 margin: 0;
@@ -26,12 +26,11 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
                 min-height: 100vh;
                 user-select: none;
                 overflow: hidden;
                 padding: 16px;
-                gap: 12px;
+                gap: 16px;
             }
             #titleWrap {
                 display: flex;
@@ -45,6 +44,7 @@
                 display: flex;
                 gap: 20px;
                 align-items: flex-start;
+                margin-top: 10px;
             }
             #boardWrap {
                 position: relative;
@@ -59,6 +59,28 @@
                 gap: 8px;
                 min-width: 120px;
                 max-width: 140px;
+            }
+            #play-side-btn {
+                padding: 10px 0;
+                width: 100%;
+                background: linear-gradient(135deg, #fce4a8, #b8e8c8);
+                color: #1a1a2e;
+                border: none;
+                font-family: inherit;
+                font-size: 0.85rem;
+                font-weight: bold;
+                letter-spacing: 0.1em;
+                cursor: pointer;
+                border-radius: 6px;
+                transition:
+                    transform 0.1s,
+                    box-shadow 0.2s;
+                box-shadow: 0 2px 12px rgba(252, 228, 168, 0.3);
+                display: none;
+            }
+            #play-side-btn:hover {
+                transform: scale(1.03);
+                box-shadow: 0 4px 20px rgba(252, 228, 168, 0.5);
             }
             .topBtns {
                 display: flex;
@@ -320,14 +342,12 @@
                 <div id="bonusText" style="display: none"></div>
                 <div id="startOverlay" class="overlay">
                     <div class="lb" id="startLB"></div>
-                    <button class="btn btnPlay" id="btnPlay">ИГРАТЬ</button>
                 </div>
                 <div id="gameoverOverlay" class="overlay" style="display: none">
                     <h2 style="color: #f0a8b8" id="goTitle">КОНЕЦ ИГРЫ</h2>
                     <p id="goScore"></p>
                     <p class="sub" id="goLevel"></p>
                     <div class="lb" id="goLB"></div>
-                    <button class="btn btnPlay" id="btnRestart">ЗАНОВО</button>
                 </div>
                 <div
                     id="levelCompleteOverlay"
@@ -404,6 +424,7 @@
                         <div class="progressBar" id="targetProgress"></div>
                     </div>
                 </div>
+                <button id="play-side-btn">ИГРАТЬ</button>
             </div>
         </div>
 
@@ -927,23 +948,54 @@
             // ═══════════════════════════════════════════════════
             let audioCtx = null;
 
+            function createAudioCtx() {
+                try {
+                    audioCtx = new (
+                        window.AudioContext || window.webkitAudioContext
+                    )();
+                } catch {
+                    audioCtx = null;
+                    soundOn = false;
+                    updateSoundBtn();
+                }
+                if (audioCtx) {
+                    audioCtx.onstatechange = function () {
+                        if (audioCtx && audioCtx.state === "interrupted")
+                            audioCtx.resume().catch(() => {});
+                    };
+                }
+            }
+
             function initAudio() {
                 if (!audioCtx && soundOn) {
-                    try {
-                        audioCtx = new (
-                            window.AudioContext || window.webkitAudioContext
-                        )();
-                    } catch {
-                        soundOn = false;
-                        updateSoundBtn();
+                    createAudioCtx();
+                }
+                if (audioCtx) {
+                    if (
+                        audioCtx.state === "suspended" ||
+                        audioCtx.state === "interrupted"
+                    ) {
+                        audioCtx.resume().catch(() => {});
+                    } else if (audioCtx.state === "closed") {
+                        audioCtx = null;
+                        createAudioCtx();
                     }
                 }
-                if (audioCtx && audioCtx.state === "suspended")
-                    audioCtx.resume().catch(() => {});
             }
 
             function playTone(freq, dur, vol, type) {
-                if (!soundOn || !audioCtx) return;
+                if (!soundOn) return;
+                if (!audioCtx || audioCtx.state === "closed") {
+                    audioCtx = null;
+                    createAudioCtx();
+                }
+                if (!audioCtx) return;
+                if (
+                    audioCtx.state === "suspended" ||
+                    audioCtx.state === "interrupted"
+                ) {
+                    audioCtx.resume().catch(() => {});
+                }
                 try {
                     const osc = audioCtx.createOscillator(),
                         gain = audioCtx.createGain();
@@ -959,8 +1011,19 @@
                     gain.connect(audioCtx.destination);
                     osc.start(audioCtx.currentTime);
                     osc.stop(audioCtx.currentTime + dur);
-                } catch {}
+                } catch {
+                    audioCtx = null;
+                    createAudioCtx();
+                }
             }
+
+            // Resume audio after system wake-up or tab focus
+            document.addEventListener("visibilitychange", function () {
+                if (!document.hidden) initAudio();
+            });
+            window.addEventListener("pageshow", function () {
+                initAudio();
+            });
 
             const sfx = {
                 select() {
@@ -1119,18 +1182,18 @@
                 const pb = document.getElementById("targetProgress");
                 pb.style.width = pct + "%";
                 pb.style.background = `linear-gradient(90deg,${tgt.mid},${tgt.light})`;
-                document.getElementById("btnPlay").textContent = l("play");
-                document.getElementById("btnRestart").textContent =
-                    l("restart");
+                document.getElementById("btnNext").textContent = l("nextLevel");
                 document.getElementById("goTitle").textContent = l("gameOver");
                 document.getElementById("lcTitle").textContent =
                     l("levelComplete");
-                document.getElementById("btnNext").textContent = l("nextLevel");
                 document.querySelector(
                     "#pauseOverlay .pauseTitle",
                 ).textContent = l("pause");
                 document.querySelector("#pauseOverlay .pauseHint").textContent =
                     l("pauseHint");
+                var sideBtn = document.getElementById("play-side-btn");
+                if (sideBtn.style.display === "block")
+                    sideBtn.textContent = l("play");
             }
 
             function updateSoundBtn() {
@@ -1155,6 +1218,13 @@
                 document.getElementById("levelCompleteOverlay").style.display =
                     name === "levelComplete" ? "flex" : "none";
                 overlayState = name;
+                var sideBtn = document.getElementById("play-side-btn");
+                if (name === "start" || name === "gameover") {
+                    sideBtn.textContent = l("play");
+                    sideBtn.style.display = "block";
+                } else {
+                    sideBtn.style.display = "none";
+                }
             }
 
             function showBonusText(txt) {
@@ -1736,10 +1806,7 @@
             // BUTTON HANDLERS
             // ═══════════════════════════════════════════════════
             document
-                .getElementById("btnPlay")
-                .addEventListener("click", startGame);
-            document
-                .getElementById("btnRestart")
+                .getElementById("play-side-btn")
                 .addEventListener("click", startGame);
             document
                 .getElementById("btnNext")
@@ -1796,6 +1863,10 @@
             document.getElementById("startLB").innerHTML =
                 `<div class="lbTitle">${l("leaderboard")}</div>` +
                 buildLBHTML(loadLB(), -1);
+
+            // Show play-side-btn since start overlay is visible by default
+            document.getElementById("play-side-btn").textContent = l("play");
+            document.getElementById("play-side-btn").style.display = "block";
 
             updateUI();
             cv.style.cursor = "pointer";

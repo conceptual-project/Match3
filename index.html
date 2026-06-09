@@ -52,7 +52,7 @@ body{background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;user-select:no
 .overlay .hint{font-size:.6rem;color:#666}
 .overlay-btn{padding:12px 32px;border:none;font-weight:900;cursor:pointer;border-radius:6px;background:linear-gradient(180deg,#d4f4e0 0%,#b8e8c8 35%,#90d0a8 70%,#70b088 100%);color:#fff;font-family:'Inter',sans-serif;font-size:1.1rem;text-shadow:1px 1px 2px rgba(0,0,0,.3);outline:1px solid rgba(255,255,255,.25);outline-offset:-2px;box-shadow:0 3px 6px rgba(0,0,0,.3);transition:transform .15s}
 .overlay-btn:hover{transform:scale(1.05)}
-.overlay-btn.next-btn{background:linear-gradient(180deg,#d0eef8 0%,#a8d8ea 35%,#88c8dc 70%,#68a8bc 100%)}
+.overlay-btn.small{padding:8px 16px;font-size:.8rem;width:100%}
 #pauseOverlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:15;border-radius:4px;cursor:pointer}
 #pauseOverlay .pauseTitle{font-family:'Inter',sans-serif;font-weight:900;font-size:1.2rem;color:#c8a8e8}
 #pauseOverlay .pauseHint{margin-top:12px;font-size:.6rem;color:#666}
@@ -84,17 +84,14 @@ body{background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;user-select:no
     <div id="bonusText" style="display:none"></div>
     <div id="startOverlay" class="overlay">
       <div class="lb" id="startLB"></div>
-      <button class="overlay-btn" id="btnPlay">ИГРАТЬ</button>
     </div>
     <div id="gameoverOverlay" class="overlay" style="display:none">
       <h2 style="color:#f0a8b8" id="goTitle">КОНЕЦ ИГРЫ</h2>
       <div class="lb" id="goLB"></div>
-      <button class="overlay-btn" id="btnRestart">ЗАНОВО</button>
     </div>
     <div id="levelCompleteOverlay" class="overlay" style="display:none">
       <h2 style="color:#b8e8c8" id="lcTitle">УРОВЕНЬ ПРОЙДЕН!</h2>
       <p id="lcScore"></p>
-      <button class="overlay-btn next-btn" id="btnNext">ДАЛЕЕ</button>
     </div>
     <div id="pauseOverlay" style="display:none">
       <div class="pauseTitle pulse-anim" id="pauseTitle">ПАУЗА</div>
@@ -128,6 +125,8 @@ body{background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;user-select:no
       </div>
       <div class="progressWrap"><div class="progressBar" id="targetProgress"></div></div>
     </div>
+    <button class="overlay-btn small" id="play-btn" style="display:none">ИГРАТЬ</button>
+  </div>
   </div>
 </div>
 <div class="frame-label">conceptual<span class="bold">project</span></div>
@@ -473,11 +472,9 @@ function updateUI(){
   const pct = Math.min((uiCollected/uiTargetCount)*100,100)
   const pb=document.getElementById('targetProgress')
   pb.style.width=pct+'%'; pb.style.background=`linear-gradient(90deg,${tgt.mid},${tgt.light})`
-  document.getElementById('btnPlay').textContent=l('play')
-  document.getElementById('btnRestart').textContent=l('restart')
   document.getElementById('goTitle').textContent=l('gameOver')
   document.getElementById('lcTitle').textContent=l('levelComplete')
-  document.getElementById('btnNext').textContent=l('nextLevel')
+  updatePlayBtn()
   document.getElementById('pauseTitle').textContent=l('pause')
   document.getElementById('pauseHint').textContent=l('pauseHint')
 }
@@ -493,11 +490,20 @@ function updateSoundBtn(){
   }
 }
 
+function updatePlayBtn(){
+  const btn=document.getElementById('play-btn')
+  if(overlayState==='start'){ btn.style.display='block'; btn.textContent=l('play') }
+  else if(overlayState==='gameover'){ btn.style.display='block'; btn.textContent=l('restart') }
+  else if(overlayState==='levelComplete'){ btn.style.display='block'; btn.textContent=l('nextLevel') }
+  else{ btn.style.display='none' }
+}
+
 function showOverlay(name){
   document.getElementById('startOverlay').style.display=name==='start'?'flex':'none'
   document.getElementById('gameoverOverlay').style.display=name==='gameover'?'flex':'none'
   document.getElementById('levelCompleteOverlay').style.display=name==='levelComplete'?'flex':'none'
   overlayState=name
+  updatePlayBtn()
 }
 
 function showBonusText(txt){
@@ -891,9 +897,10 @@ function render(now){
 // ═══════════════════════════════════════════════════
 // BUTTON HANDLERS
 // ═══════════════════════════════════════════════════
-document.getElementById('btnPlay').addEventListener('click', startGame)
-document.getElementById('btnRestart').addEventListener('click', startGame)
-document.getElementById('btnNext').addEventListener('click', nextLevel)
+document.getElementById('play-btn').addEventListener('click', ()=>{
+  if(overlayState==='levelComplete') nextLevel()
+  else startGame()
+})
 
 document.getElementById('btnLang').addEventListener('click',()=>{
   lang=lang==='ru'?'en':'ru'

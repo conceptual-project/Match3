@@ -10,102 +10,117 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ТРИ В РЯД — MATCH-3</title>
+<title>MATCH 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d0d0d;color:#fff;font-family:"Courier New",Courier,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;user-select:none;overflow:hidden;padding:16px;gap:12px}
-#titleWrap{display:flex;align-items:flex-end;justify-content:center;gap:6px;animation:titleGlow 3s ease-in-out infinite;will-change:filter}
-#gameArea{display:flex;gap:20px;align-items:flex-start}
-#boardWrap{position:relative}
-canvas{display:block;border-radius:4px;touch-action:none}
-#rightCol{display:flex;flex-direction:column;gap:8px;min-width:120px;max-width:140px}
-.topBtns{display:flex;gap:6px}
-.topBtns button{flex:1;border-radius:6px;font-family:inherit;font-weight:bold;padding:7px 0;cursor:pointer;transition:background .15s,color .15s,border-color .15s;text-align:center;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#888;font-size:.65rem;letter-spacing:.08em}
-.infoBox{background:rgba(20,20,30,.75);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:10px 12px}
-.infoBox .label{font-size:.65rem;color:#888;text-transform:uppercase;letter-spacing:.15em;margin-bottom:2px;font-family:inherit}
-.infoBox .value{font-size:1.2rem;font-weight:bold;font-family:inherit}
+body{background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;user-select:none;min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px}
+.top-bar{display:flex;align-items:flex-end;justify-content:center;width:100%;position:relative}
+.title-row{display:flex;align-items:center;justify-content:center;gap:5px}
+.title-cube{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;font-family:'Inter',sans-serif;font-weight:900;font-size:22px;color:#fff;border-radius:5px;text-shadow:1px 1px 2px rgba(0,0,0,.4);position:relative;user-select:none;outline:1px solid rgba(255,255,255,.25);outline-offset:-2px}
+.title-cube::before{content:'';position:absolute;top:2px;left:2px;right:2px;height:36%;background:linear-gradient(180deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,0) 100%);border-radius:3px 3px 0 0;pointer-events:none}
+.title-cube::after{content:'';position:absolute;bottom:2px;left:2px;right:2px;height:33%;background:linear-gradient(0deg,rgba(0,0,0,.2) 0%,transparent 100%);border-radius:0 0 3px 3px;pointer-events:none}
+.btn-row{display:flex;gap:6px}
+.tbtn{flex:1;background:rgba(20,20,30,.75);border:1px solid rgba(255,255,255,.08);border-radius:6px;color:#888;font-family:'Inter',sans-serif;font-size:.6rem;font-weight:bold;letter-spacing:.08em;padding:6px 0;cursor:pointer;transition:background .15s,color .15s;text-align:center}
+.tbtn:hover{background:rgba(255,255,255,.1);color:#ccc}
+.tbtn.sound-on{background:rgba(200,168,232,.08);border-color:rgba(200,168,232,.2);color:#c8a8e8}
+.tbtn.sound-off{background:rgba(20,20,30,.75);border-color:rgba(255,255,255,.08);color:#666}
+/* game frame */
+.game-frame{position:relative;border:2px solid #555;border-radius:16px;padding:16px 20px 20px;background:rgba(255,255,255,.03);display:flex;flex-direction:column;align-items:center;gap:32px}
+.game-frame::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:130px;height:4px;background:#0d0d0d;z-index:1}
+.frame-label{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);background:#0d0d0d;padding:0 5px;font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.5px;color:#555;z-index:2;white-space:nowrap}
+.frame-label .bold{font-weight:700;color:#777}
+.main-row{display:flex;gap:24px;align-items:flex-start}
+.board-wrap{position:relative;border-radius:6px;padding:4px;background:rgba(20,20,30,.75);border:1px solid rgba(255,255,255,.08)}
+.board-wrap canvas{display:block;border-radius:4px;touch-action:none;border:none;cursor:pointer}
+.stat-box{border-radius:6px;padding:10px;background:rgba(20,20,30,.75);border:1px solid rgba(255,255,255,.08)}
+.stat-box .label{font-size:.65rem;color:#888;text-transform:uppercase;letter-spacing:.15em;margin-bottom:2px}
+.stat-box .value{font-weight:bold;font-size:1.1rem;color:#fff}
+.stat-box .value.purple{color:#c8a8e8}
+.stat-box .value.green{color:#b8e8c8}
+.stat-box .value.red{color:#f0a8b8}
+.stat-box .value.yellow{color:#fce4a8}
 #targetBox .targetRow{display:flex;align-items:center;gap:8px}
 #targetBox .colorSwatch{width:16px;height:16px;border-radius:3px}
 #targetBox .progressWrap{margin-top:6px;width:100%;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
 #targetBox .progressBar{height:100%;border-radius:2px;transition:width .3s}
-.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,10,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:10;border-radius:4px}
-.overlay h2{font-size:1.4rem;margin-bottom:8px;font-family:inherit}
-.overlay p{font-size:1.1rem;margin-bottom:4px;color:#ccc;font-family:inherit}
-
-.btn{padding:12px 32px;border:none;font-family:inherit;font-size:1.1rem;font-weight:bold;cursor:pointer;border-radius:8px;transition:transform .1s,box-shadow .2s}
-.btn:hover{transform:scale(1.05)}
-.btnPlay{background:linear-gradient(135deg,#fce4a8,#b8e8c8);color:#1a1a2e;box-shadow:0 2px 12px rgba(252,228,168,.3)}
-.btnPlay:hover{box-shadow:0 4px 20px rgba(252,228,168,.5)}
-.btnNext{background:linear-gradient(135deg,#b8e8c8,#a8d8ea);color:#1a1a2e;box-shadow:0 2px 12px rgba(184,232,200,.3)}
-.btnNext:hover{box-shadow:0 4px 20px rgba(184,232,200,.5)}
-#pauseOverlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,16,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:15;border-radius:4px}
-#pauseOverlay .pauseTitle{font-size:1.8rem;font-weight:bold;color:#fce4a8;text-shadow:0 0 16px rgba(252,228,168,.5),0 0 32px rgba(252,228,168,.25);font-family:inherit}
-#pauseOverlay .pauseHint{margin-top:12px;font-size:.7rem;color:#888;font-family:inherit}
-#bonusText{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);z-index:20;pointer-events:none;font-size:1.3rem;font-weight:bold;font-family:"Courier New",monospace;color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,2px 2px 4px rgba(0,0,0,.9),-2px -2px 4px rgba(0,0,0,.9),0 0 18px rgba(252,228,168,.7),0 0 40px rgba(252,228,168,.35)}
-.lb{width:85%;max-width:320px;margin-bottom:16px}
-.lbTitle{font-size:.7rem;color:#fce4a8;text-transform:uppercase;letter-spacing:.15em;text-align:center;margin-bottom:8px;font-family:inherit}
-.lbEmpty{color:#555;font-size:.65rem;text-align:center;padding:10px 0;font-family:inherit}
-.lbRow{display:flex;gap:8px;align-items:center;margin-bottom:3px;font-size:.75rem;padding:2px 6px;border-radius:3px;font-family:inherit}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:10;border-radius:4px}
+.overlay h2{font-family:'Inter',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:8px}
+.overlay p{font-size:.7rem;margin-bottom:8px;color:#ccc}
+.overlay .hint{font-size:.6rem;color:#666}
+.overlay-btn{padding:12px 32px;border:none;font-weight:900;cursor:pointer;border-radius:6px;background:linear-gradient(180deg,#d4f4e0 0%,#b8e8c8 35%,#90d0a8 70%,#70b088 100%);color:#fff;font-family:'Inter',sans-serif;font-size:1.1rem;text-shadow:1px 1px 2px rgba(0,0,0,.3);outline:1px solid rgba(255,255,255,.25);outline-offset:-2px;box-shadow:0 3px 6px rgba(0,0,0,.3);transition:transform .15s}
+.overlay-btn:hover{transform:scale(1.05)}
+.overlay-btn.next-btn{background:linear-gradient(180deg,#d0eef8 0%,#a8d8ea 35%,#88c8dc 70%,#68a8bc 100%)}
+#pauseOverlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:15;border-radius:4px;cursor:pointer}
+#pauseOverlay .pauseTitle{font-family:'Inter',sans-serif;font-weight:900;font-size:1.2rem;color:#c8a8e8}
+#pauseOverlay .pauseHint{margin-top:12px;font-size:.6rem;color:#666}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse-anim{animation:pulse 1s ease-in-out infinite}
+#bonusText{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);z-index:20;pointer-events:none;font-size:1.3rem;font-weight:bold;font-family:'Inter',sans-serif;color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,2px 2px 4px rgba(0,0,0,.9),-2px -2px 4px rgba(0,0,0,.9),0 0 18px rgba(252,228,168,.7),0 0 40px rgba(252,228,168,.35)}
+.lb{width:85%;max-width:320px;max-height:220px;overflow-y:auto;margin-bottom:12px;scrollbar-width:thin;scrollbar-color:rgba(200,168,232,.3) transparent}
+.lbTitle{font-family:'Inter',sans-serif;font-size:.65rem;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.15em;text-align:center;margin-bottom:8px}
+.lbEmpty{color:#555;font-size:.6rem;text-align:center;padding:10px 0}
+.lbRow{display:flex;gap:8px;align-items:center;margin-bottom:3px;font-size:.7rem;padding:2px 6px;border-radius:3px}
 .lbRow.even{background:rgba(255,255,255,.03)}
 .lbRow.hi{color:#fff;font-weight:bold}
-.lbRow:not(.hi){color:#ccc}
+.lbRow:not(.hi){color:#bbb}
 .lbRow .rank{min-width:18px;text-align:right;font-variant-numeric:tabular-nums}
 .lbRow .sc{font-variant-numeric:tabular-nums}
 .lbRow .lv{color:#888;font-size:.6rem}
 .lbRow .dt{color:#555;font-size:.55rem;margin-left:auto}
-@keyframes titleGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(252,228,168,.4)) drop-shadow(0 0 20px rgba(252,228,168,.2))}50%{filter:drop-shadow(0 0 14px rgba(252,228,168,.6)) drop-shadow(0 0 30px rgba(252,228,168,.3))}}
-.pixelChar{display:grid;gap:1px}
-.pixelCell{width:8px;height:8px;border-radius:2px}
 </style>
 </head>
 <body>
 
-<div id="titleWrap"></div>
-
-<div id="gameArea">
-  <div id="boardWrap">
+<div class="game-frame">
+<div class="top-bar">
+  <div id="titleRow" class="title-row"></div>
+</div>
+<div class="main-row">
+  <div class="board-wrap" id="boardWrap">
     <canvas id="cv"></canvas>
     <div id="bonusText" style="display:none"></div>
     <div id="startOverlay" class="overlay">
       <div class="lb" id="startLB"></div>
-      <button class="btn btnPlay" id="btnPlay">ИГРАТЬ</button>
+      <button class="overlay-btn" id="btnPlay">ИГРАТЬ</button>
     </div>
     <div id="gameoverOverlay" class="overlay" style="display:none">
       <h2 style="color:#f0a8b8" id="goTitle">КОНЕЦ ИГРЫ</h2>
       <div class="lb" id="goLB"></div>
-      <button class="btn btnPlay" id="btnRestart">ЗАНОВО</button>
+      <button class="overlay-btn" id="btnRestart">ЗАНОВО</button>
     </div>
     <div id="levelCompleteOverlay" class="overlay" style="display:none">
       <h2 style="color:#b8e8c8" id="lcTitle">УРОВЕНЬ ПРОЙДЕН!</h2>
       <p id="lcScore"></p>
-      <button class="btn btnNext" id="btnNext">ДАЛЕЕ</button>
+      <button class="overlay-btn next-btn" id="btnNext">ДАЛЕЕ</button>
     </div>
     <div id="pauseOverlay" style="display:none">
-      <div class="pauseTitle">ПАУЗА</div>
-      <div class="pauseHint">коснись чтобы продолжить</div>
+      <div class="pauseTitle pulse-anim" id="pauseTitle">ПАУЗА</div>
+      <div class="hint" id="pauseHint">коснись чтобы продолжить</div>
     </div>
   </div>
 
-  <div id="rightCol">
-    <div class="topBtns">
-      <button id="btnPause"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></button>
-      <button id="btnLang">EN</button>
-      <button id="btnSound"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
+  <div class="right-panel" style="display:flex;flex-direction:column;gap:10px;min-width:150px">
+    <div class="btn-row">
+      <button class="tbtn" id="btnPause"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></button>
+      <button class="tbtn" id="btnLang">EN</button>
+      <button class="tbtn" id="btnSound"></button>
     </div>
-    <div class="infoBox" id="scoreBox">
+    <div class="stat-box" id="scoreBox">
       <div class="label" id="scoreLabel">Счёт</div>
-      <div class="value" id="scoreValue" style="color:#fff">0</div>
+      <div class="value" id="scoreValue">0</div>
     </div>
-    <div class="infoBox" id="levelBox">
+    <div class="stat-box" id="levelBox">
       <div class="label" id="levelLabel">Уровень</div>
-      <div class="value" id="levelValue" style="color:#d4b8e8">1</div>
+      <div class="value purple" id="levelValue">1</div>
     </div>
-    <div class="infoBox" id="timeBox">
+    <div class="stat-box" id="timeBox">
       <div class="label" id="timeLabel">Время</div>
-      <div class="value" id="timeValue" style="color:#b8e8c8">100</div>
+      <div class="value green" id="timeValue">100</div>
     </div>
-    <div class="infoBox" id="targetBox">
+    <div class="stat-box" id="targetBox">
       <div class="label" id="targetLabel">Цель</div>
       <div class="targetRow">
         <div class="colorSwatch" id="targetSwatch"></div>
@@ -114,6 +129,8 @@ canvas{display:block;border-radius:4px;touch-action:none}
       <div class="progressWrap"><div class="progressBar" id="targetProgress"></div></div>
     </div>
   </div>
+</div>
+<div class="frame-label">conceptual<span class="bold">project</span></div>
 </div>
 
 <script>
@@ -134,28 +151,7 @@ const COLORS = [
   { base:'#f0b8c0', light:'#f8d4d8', mid:'#e09098', dark:'#c87078', glow:[240,184,192] },
 ]
 
-// ═══════════════════════════════════════════════════
-// PIXEL MAPS
-// ═══════════════════════════════════════════════════
-const PM = {
-  'Т':[[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
-  'Р':[[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0]],
-  'И':[[1,0,0,0,1],[1,0,0,1,1],[1,0,1,0,1],[1,1,0,0,1],[1,0,0,0,1]],
-  'В':[[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0]],
-  'Я':[[0,1,1,1,0],[1,0,0,0,1],[0,1,1,1,1],[0,1,0,0,1],[1,0,0,0,1]],
-  'Д':[[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[1,1,1,1,1,1,1]],
-  'M':[[1,0,0,0,1],[1,1,0,1,1],[1,0,1,0,1],[1,0,0,0,1],[1,0,0,0,1]],
-  'A':[[0,1,1,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
-  'T':[[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
-  'C':[[0,1,1,1,1],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[0,1,1,1,1]],
-  'H':[[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
-  '3':[[0,1,1,1,0],[1,0,0,0,1],[0,0,1,1,0],[1,0,0,0,1],[0,1,1,1,0]],
-  '-':[[0,0,0,0,0],[0,0,0,0,0],[1,1,1,1,1],[0,0,0,0,0],[0,0,0,0,0]],
-}
-
-const TITLE_RU = [{ch:'Т'},{ch:'Р'},{ch:'И'},{ch:' ',space:true},{ch:'В'},{ch:' ',space:true},{ch:'Р'},{ch:'Я'},{ch:'Д'}]
-const TITLE_EN = [{ch:'M'},{ch:'A'},{ch:'T'},{ch:'C'},{ch:'H'},{ch:'-'},{ch:'3'}]
-const TITLE_COLORS = [COLORS[0],COLORS[1],COLORS[2],COLORS[3],COLORS[4],COLORS[0],COLORS[1],COLORS[2],COLORS[3]]
+const TITLE_PIECE_COLORS = [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[4], COLORS[0], COLORS[1]]
 
 // ═══════════════════════════════════════════════════
 // LOCALIZATION
@@ -313,45 +309,49 @@ const cv = document.getElementById('cv')
 const ctx = cv.getContext('2d')
 cv.width = BW; cv.height = BH
 
-function rrect(ctx,x,y,w,h,r){
+function rrect(ctx,x,y,w,h,radii){
+  let tl,tr,br,bl
+  if(Array.isArray(radii)){ [tl,tr,br,bl]=radii }
+  else{ tl=tr=br=bl=radii }
   ctx.beginPath()
-  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y)
-  ctx.quadraticCurveTo(x+w,y,x+w,y+r)
-  ctx.lineTo(x+w,y+h-r)
-  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h)
-  ctx.lineTo(x+r,y+h)
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r)
-  ctx.lineTo(x,y+r)
-  ctx.quadraticCurveTo(x,y,x+r,y)
+  ctx.moveTo(x+tl,y); ctx.lineTo(x+w-tr,y)
+  ctx.quadraticCurveTo(x+w,y,x+w,y+tr)
+  ctx.lineTo(x+w,y+h-br)
+  ctx.quadraticCurveTo(x+w,y+h,x+w-br,y+h)
+  ctx.lineTo(x+bl,y+h)
+  ctx.quadraticCurveTo(x,y+h,x,y+h-bl)
+  ctx.lineTo(x,y+tl)
+  ctx.quadraticCurveTo(x,y,x+tl,y)
   ctx.closePath()
 }
 
 function drawCube(ctx,px,py,ci,sz,sel,alpha){
-  const co=COLORS[ci],r=4
+  const co=COLORS[ci], r=4
   ctx.save(); ctx.globalAlpha=alpha
+  // Main gradient fill
   const g=ctx.createLinearGradient(px,py,px,py+sz)
   g.addColorStop(0,co.light); g.addColorStop(.35,co.base)
   g.addColorStop(.7,co.mid); g.addColorStop(1,co.dark)
   ctx.fillStyle=g
   rrect(ctx,px+.5,py+.5,sz-1,sz-1,r); ctx.fill()
+  // Inner white border
   ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1
   rrect(ctx,px+1.5,py+1.5,sz-3,sz-3,r-.5); ctx.stroke()
-  const sh=sz*.38
-  ctx.globalAlpha=.45*alpha
-  const sg=ctx.createLinearGradient(px,py,px,py+sh)
-  sg.addColorStop(0,'rgba(255,255,255,.7)'); sg.addColorStop(1,'rgba(255,255,255,0)')
+  // Shine (top highlight)
+  const shineH=sz*.36
+  ctx.globalAlpha=.45
+  const sg=ctx.createLinearGradient(px,py,px,py+shineH)
+  sg.addColorStop(0,'rgba(255,255,255,.45)'); sg.addColorStop(1,'rgba(255,255,255,0)')
   ctx.fillStyle=sg
-  ctx.beginPath(); ctx.rect(px+2,py+2,sz-4,sh); ctx.fill()
-  ctx.globalAlpha=.6*alpha; ctx.fillStyle='#fff'
-  ctx.beginPath(); ctx.ellipse(px+sz*.28,py+sz*.22,sz*.08,sz*.05,-.3,0,Math.PI*2); ctx.fill()
-  ctx.globalAlpha=.15*alpha
-  const bg=ctx.createLinearGradient(px,py+sz*.65,px,py+sz)
-  bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(1,'rgba(0,0,0,.5)')
+  rrect(ctx,px+2,py+2,sz-4,shineH,[r-1,r-1,0,0]); ctx.fill()
+  // Shadow (bottom)
+  ctx.globalAlpha=.3
+  const bg=ctx.createLinearGradient(px,py+sz*.67,px,py+sz)
+  bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(1,'rgba(0,0,0,.2)')
   ctx.fillStyle=bg
-  ctx.beginPath(); ctx.rect(px+2,py+sz*.65,sz-4,sz*.33); ctx.fill()
-  ctx.globalAlpha=.08*alpha; ctx.shadowColor=co.base; ctx.shadowBlur=8
-  ctx.fillStyle=co.base; rrect(ctx,px,py,sz,sz,r); ctx.fill()
-  ctx.shadowBlur=0
+  rrect(ctx,px+2,py+sz*.67,sz-4,sz*.31,[0,0,r-1,r-1]); ctx.fill()
+  ctx.globalAlpha=1
+  // Selection highlight
   if(sel){
     ctx.globalAlpha=.4*alpha; ctx.fillStyle='#fff'
     rrect(ctx,px+.5,py+.5,sz-1,sz-1,r); ctx.fill()
@@ -430,35 +430,22 @@ const sfx = {
 // ═══════════════════════════════════════════════════
 // UI HELPERS
 // ═══════════════════════════════════════════════════
-function buildTitle(){
-  const wrap = document.getElementById('titleWrap')
-  wrap.innerHTML = ''
-  const chars = lang==='ru' ? TITLE_RU : TITLE_EN
-  let ci = 0
-  for(let i=0;i<chars.length;i++){
-    const tc = chars[i]
-    if(tc.space){ const sp=document.createElement('div'); sp.style.width='12px'; wrap.appendChild(sp); continue }
-    const map = PM[tc.ch]
-    const co = TITLE_COLORS[ci % TITLE_COLORS.length]; ci++
-    if(!map){
-      const span=document.createElement('span')
-      span.style.cssText=`color:${co.base};font-size:1.8rem;font-family:"Courier New",monospace;font-weight:bold;line-height:1`
-      span.textContent=tc.ch; wrap.appendChild(span); continue
+function renderTitle(){
+  const row = document.getElementById('titleRow')
+  row.innerHTML = ''
+  const titleStr = 'MATCH 3'
+  for(let i=0;i<titleStr.length;i++){
+    const ch = titleStr[i]
+    if(ch===' '){
+      const sp=document.createElement('div'); sp.style.width='10px'; row.appendChild(sp); continue
     }
-    const cols=map[0].length
-    const g=document.createElement('div')
-    g.className='pixelChar'; g.style.gridTemplateColumns=`repeat(${cols},8px)`
-    for(let ri=0;ri<map.length;ri++){
-      for(let cci=0;cci<cols;cci++){
-        const cell=document.createElement('div')
-        cell.className='pixelCell'
-        const on=map[ri][cci]
-        cell.style.background=on?`linear-gradient(180deg,${co.light} 0%,${co.base} 35%,${co.mid} 70%,${co.dark} 100%)`:'transparent'
-        cell.style.boxShadow=on?'inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(0,0,0,.25)':'none'
-        g.appendChild(cell)
-      }
-    }
-    wrap.appendChild(g)
+    const co = TITLE_PIECE_COLORS[i % TITLE_PIECE_COLORS.length]
+    const cube = document.createElement('div')
+    cube.className = 'title-cube'
+    cube.textContent = ch
+    cube.style.background = 'linear-gradient(180deg,'+co.light+' 0%,'+co.base+' 35%,'+co.mid+' 70%,'+co.dark+' 100%)'
+    cube.style.boxShadow = '0 3px 6px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.2)'
+    row.appendChild(cube)
   }
 }
 
@@ -476,8 +463,8 @@ function updateUI(){
   document.getElementById('scoreValue').textContent = score
   document.getElementById('levelValue').textContent = level
   document.getElementById('timeValue').textContent = uiTime
-  const timeColor = uiTime<=10?'#f0a8b8':uiTime<=20?'#fce4a8':'#b8e8c8'
-  document.getElementById('timeValue').style.color = timeColor
+  const timeEl = document.getElementById('timeValue')
+  timeEl.className = 'value ' + (uiTime<=10?'red':uiTime<=20?'yellow':'green')
   const tgt = COLORS[uiTargetColor]
   document.getElementById('targetSwatch').style.background=`linear-gradient(135deg,${tgt.light},${tgt.dark})`
   document.getElementById('targetSwatch').style.boxShadow=`0 0 6px ${tgt.base}`
@@ -491,16 +478,19 @@ function updateUI(){
   document.getElementById('goTitle').textContent=l('gameOver')
   document.getElementById('lcTitle').textContent=l('levelComplete')
   document.getElementById('btnNext').textContent=l('nextLevel')
-  document.querySelector('#pauseOverlay .pauseTitle').textContent=l('pause')
-  document.querySelector('#pauseOverlay .pauseHint').textContent=l('pauseHint')
+  document.getElementById('pauseTitle').textContent=l('pause')
+  document.getElementById('pauseHint').textContent=l('pauseHint')
 }
 
 function updateSoundBtn(){
   const btn=document.getElementById('btnSound')
-  btn.innerHTML=soundOn?'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>':'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'
-  btn.style.background=soundOn?'rgba(252,228,168,.08)':'rgba(255,255,255,.05)'
-  btn.style.border=soundOn?'1px solid rgba(252,228,168,.2)':'1px solid rgba(255,255,255,.1)'
-  btn.style.color=soundOn?'#fce4a8':'#666'
+  if(soundOn){
+    btn.className='tbtn sound-on'
+    btn.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>'
+  }else{
+    btn.className='tbtn sound-off'
+    btn.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>'
+  }
 }
 
 function showOverlay(name){
@@ -649,12 +639,14 @@ function updatePauseBtn(){
   const btn=document.getElementById('btnPause')
   if(!btn) return
   if(paused){
-    btn.style.background='rgba(252,228,168,.08)'
-    btn.style.border='1px solid rgba(252,228,168,.2)'
-    btn.style.color='#fce4a8'
+    btn.className='tbtn'
+    btn.style.background='rgba(200,168,232,.08)'
+    btn.style.border='1px solid rgba(200,168,232,.2)'
+    btn.style.color='#c8a8e8'
   }else{
-    btn.style.background='rgba(255,255,255,.05)'
-    btn.style.border='1px solid rgba(255,255,255,.1)'
+    btn.className='tbtn'
+    btn.style.background='rgba(20,20,30,.75)'
+    btn.style.border='1px solid rgba(255,255,255,.08)'
     btn.style.color='#888'
   }
 }
@@ -747,27 +739,22 @@ cv.addEventListener('touchend', e=>{
   const t=e.changedTouches[0]
   if(!t) return
 
-  // Calculate swipe distance
   const dx=t.clientX-touchStartX, dy=t.clientY-touchStartY
   const rect=cv.getBoundingClientRect()
-  const threshold=rect.width/(COLS*2) // half a cell in screen pixels
+  const threshold=rect.width/(COLS*2)
   const absDx=Math.abs(dx), absDy=Math.abs(dy)
 
-  // Detect swipe direction
   if(absDx>threshold||absDy>threshold){
     let sr, sc
     if(absDx>absDy){
-      // Horizontal swipe
       sr=touchStartR; sc=touchStartC+(dx>0?1:-1)
     }else{
-      // Vertical swipe
       sr=touchStartR+(dy>0?1:-1); sc=touchStartC
     }
     if(sr>=0&&sr<ROWS&&sc>=0&&sc<COLS){
       trySwap(touchStartR, touchStartC, sr, sc)
     }
   }else{
-    // Tap (no swipe) — use same logic as click
     const cell=touchToGrid(t)
     if(!cell){ touchStartR=-1; return }
     const r=cell.r, c=cell.c
@@ -780,11 +767,6 @@ cv.addEventListener('touchend', e=>{
   }
   touchStartR=-1
 }, {passive:false})
-
-// ═══════════════════════════════════════════════════
-// KEYBOARD
-// ═══════════════════════════════════════════════════
-// Pause via button only (keyboard shortcut removed)
 
 // ═══════════════════════════════════════════════════
 // RENDER LOOP
@@ -896,7 +878,7 @@ function render(now){
     ctx.save()
     const prog=Math.min((now-ph.t0)/ph.dur,1)
     ctx.globalAlpha=prog<.5?1:1-(prog-.5)/.5
-    ctx.fillStyle='#fce4a8'; ctx.font='bold 16px "Courier New",monospace'
+    ctx.fillStyle='#fce4a8'; ctx.font='bold 16px "Inter",sans-serif'
     ctx.textAlign='center'; ctx.textBaseline='middle'
     ctx.shadowColor='rgba(252,228,168,.6)'; ctx.shadowBlur=12
     ctx.fillText(l('noMoves'),BW/2,BH/2)
@@ -917,8 +899,8 @@ document.getElementById('btnLang').addEventListener('click',()=>{
   lang=lang==='ru'?'en':'ru'
   try{ localStorage.setItem(LANG_KEY,lang) }catch{}
   document.getElementById('btnLang').textContent=lang==='ru'?'EN':'RU'
-  document.title=lang==='ru'?'ТРИ В РЯД — MATCH-3':'MATCH-3'
-  buildTitle(); updateUI()
+  document.title='MATCH 3'
+  updateUI()
   // Rebuild start screen leaderboard
   if(overlayState==='start'){
     document.getElementById('startLB').innerHTML=`<div class="lbTitle">${l('leaderboard')}</div>`+buildLBHTML(loadLB(),-1)
@@ -946,10 +928,10 @@ document.getElementById('pauseOverlay').addEventListener('click',()=>{
 try{ const s=localStorage.getItem(LANG_KEY); if(s==='en'||s==='ru') lang=s }catch{}
 try{ if(localStorage.getItem(SOUND_KEY)==='off') soundOn=false }catch{}
 document.getElementById('btnLang').textContent=lang==='ru'?'EN':'RU'
-document.title=lang==='ru'?'ТРИ В РЯД — MATCH-3':'MATCH-3'
+document.title='MATCH 3'
 updateSoundBtn()
 updatePauseBtn()
-buildTitle()
+renderTitle()
 
 grid=fillGridNoMatches()
 const initTgt=getLevelTarget(1)

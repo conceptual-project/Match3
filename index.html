@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0d0d0d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -10,6 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ТРИ В РЯД — MATCH-3</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -160,7 +161,7 @@ const TITLE_COLORS = [COLORS[0],COLORS[1],COLORS[2],COLORS[3],COLORS[4],COLORS[0
 // LOCALIZATION
 // ═══════════════════════════════════════════════════
 const LOC = {
-  play:{ru:'ИГРАТЬ',en:'PLAY'},restart:{ru:'ЗАНОВО',en:'AGAIN'},
+  play:{ru:'ИГРАТЬ',en:'PLAY'},restart:{ru:'ЗАНОВО',en:'RESTART'},
   gameOver:{ru:'КОНЕЦ ИГРЫ',en:'GAME OVER'},levelComplete:{ru:'УРОВЕНЬ ПРОЙДЕН!',en:'LEVEL COMPLETE!'},
   score:{ru:'Счёт',en:'Score'},level:{ru:'Уровень',en:'Level'},time:{ru:'Время',en:'Time'},
   target:{ru:'Цель',en:'Target'},leaderboard:{ru:'Топ-10',en:'Top-10'},
@@ -916,6 +917,7 @@ document.getElementById('btnLang').addEventListener('click',()=>{
   lang=lang==='ru'?'en':'ru'
   try{ localStorage.setItem(LANG_KEY,lang) }catch{}
   document.getElementById('btnLang').textContent=lang==='ru'?'EN':'RU'
+  document.title=lang==='ru'?'ТРИ В РЯД — MATCH-3':'MATCH-3'
   buildTitle(); updateUI()
   // Rebuild start screen leaderboard
   if(overlayState==='start'){
@@ -944,6 +946,7 @@ document.getElementById('pauseOverlay').addEventListener('click',()=>{
 try{ const s=localStorage.getItem(LANG_KEY); if(s==='en'||s==='ru') lang=s }catch{}
 try{ if(localStorage.getItem(SOUND_KEY)==='off') soundOn=false }catch{}
 document.getElementById('btnLang').textContent=lang==='ru'?'EN':'RU'
+document.title=lang==='ru'?'ТРИ В РЯД — MATCH-3':'MATCH-3'
 updateSoundBtn()
 updatePauseBtn()
 buildTitle()
@@ -959,6 +962,7 @@ cv.style.cursor='pointer'
 
 requestAnimationFrame(render)
 </script>
+
 <script>
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
 </script>

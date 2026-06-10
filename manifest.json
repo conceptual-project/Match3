@@ -1,7 +1,7 @@
 {
-  "name": "Три в ряд — Match 3",
+  "name": "Match 3",
   "short_name": "Match3",
-  "description": "Собирай три и более кристалла в ряд! / Match three or more gems in a row!",
+  "description": "Собирай три и более кубиков в ряд! / Match three or more cubes in a row!",
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",

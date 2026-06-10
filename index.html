@@ -49,7 +49,6 @@ body{background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;user-select:no
 .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:10;border-radius:4px}
 .overlay h2{font-family:'Inter',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:8px}
 .overlay p{font-size:.7rem;margin-bottom:8px;color:#ccc}
-.overlay .hint{font-size:.6rem;color:#666}
 .overlay-btn{padding:12px 32px;border:none;font-weight:900;cursor:pointer;border-radius:6px;background:linear-gradient(180deg,#d4f4e0 0%,#b8e8c8 35%,#90d0a8 70%,#70b088 100%);color:#fff;font-family:'Inter',sans-serif;font-size:1.1rem;text-shadow:1px 1px 2px rgba(0,0,0,.3);outline:1px solid rgba(255,255,255,.25);outline-offset:-2px;box-shadow:0 3px 6px rgba(0,0,0,.3);transition:transform .15s}
 .overlay-btn:hover{transform:scale(1.05)}
 .overlay-btn.small{padding:8px 16px;font-size:.8rem;width:100%}
@@ -60,16 +59,18 @@ body{background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;user-select:no
 .pulse-anim{animation:pulse 1s ease-in-out infinite}
 #bonusText{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);z-index:20;pointer-events:none;font-size:1.3rem;font-weight:bold;font-family:'Inter',sans-serif;color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,2px 2px 4px rgba(0,0,0,.9),-2px -2px 4px rgba(0,0,0,.9),0 0 18px rgba(252,228,168,.7),0 0 40px rgba(252,228,168,.35)}
 .lb{width:85%;max-width:320px;max-height:220px;overflow-y:auto;margin-bottom:12px;scrollbar-width:thin;scrollbar-color:rgba(200,168,232,.3) transparent}
-.lbTitle{font-family:'Inter',sans-serif;font-size:.65rem;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.15em;text-align:center;margin-bottom:8px}
-.lbEmpty{color:#555;font-size:.6rem;text-align:center;padding:10px 0}
-.lbRow{display:flex;gap:8px;align-items:center;margin-bottom:3px;font-size:.7rem;padding:2px 6px;border-radius:3px}
+.lbTitle{font-family:'Inter',sans-serif;font-size:.7rem;color:#c8a8e8;text-transform:uppercase;letter-spacing:.15em;text-align:center;margin-bottom:8px}
+.lbEmpty{color:#555;font-size:.65rem;text-align:center;padding:10px 0;font-family:'Inter',sans-serif}
+.lbRow{display:grid;grid-template-columns:18px 7px 52px 36px auto;gap:8px;align-items:center;margin-bottom:3px;font-size:.75rem;padding:2px 6px;border-radius:3px;font-family:'Inter',sans-serif}
 .lbRow.even{background:rgba(255,255,255,.03)}
 .lbRow.hi{color:#fff;font-weight:bold}
-.lbRow:not(.hi){color:#bbb}
-.lbRow .rank{min-width:18px;text-align:right;font-variant-numeric:tabular-nums}
-.lbRow .sc{font-variant-numeric:tabular-nums}
+.lbRow:not(.hi){color:#ccc}
+.lbRow .rank{text-align:right;font-variant-numeric:tabular-nums}
+.lbRow .sc{font-weight:bold;font-variant-numeric:tabular-nums;text-align:left}
 .lbRow .lv{color:#888;font-size:.6rem}
-.lbRow .dt{color:#555;font-size:.55rem;margin-left:auto}
+.lbRow .dt{color:#555;font-size:.55rem;text-align:right}
+.lbDot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.lbDot.norm{background:rgba(255,255,255,.35)}
 </style>
 </head>
 <body>
@@ -138,7 +139,7 @@ body{background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;user-select:no
 const COLS = 8, ROWS = 13, CELL = 36, GAP = 2, CELL_FULL = CELL + GAP
 const BW = COLS * CELL_FULL + GAP, BH = ROWS * CELL_FULL + GAP
 const NUM_COLORS = 5, LEVEL_TIME = 100
-const LB_KEY = 'match3_leaderboard', LB_MAX = 10
+const LB_KEY = 'match3_leaderboard', LB_MAX = 5
 const LANG_KEY = 'match3_lang', SOUND_KEY = 'match3_sound'
 
 const COLORS = [
@@ -158,7 +159,7 @@ const LOC = {
   play:{ru:'ИГРАТЬ',en:'PLAY'},restart:{ru:'ЗАНОВО',en:'RESTART'},
   gameOver:{ru:'КОНЕЦ ИГРЫ',en:'GAME OVER'},levelComplete:{ru:'УРОВЕНЬ ПРОЙДЕН!',en:'LEVEL COMPLETE!'},
   score:{ru:'Счёт',en:'Score'},level:{ru:'Уровень',en:'Level'},time:{ru:'Время',en:'Time'},
-  target:{ru:'Цель',en:'Target'},leaderboard:{ru:'Топ-10',en:'Top-10'},
+  target:{ru:'Цель',en:'Target'},leaderboard:{ru:'Топ-5',en:'Top-5'},
   noRecords:{ru:'Пока нет рекордов',en:'No records yet'},nextLevel:{ru:'ДАЛЕЕ',en:'NEXT'},
   noMoves:{ru:'НЕТ ХОДОВ — ПЕРЕМЕШИВАЕМ',en:'NO MOVES — SHUFFLING'},
   cascade:{ru:'КАСКАД ×',en:'CASCADE ×'},pause:{ru:'ПАУЗА',en:'PAUSE'},
@@ -179,6 +180,7 @@ let bonusTextStr = '', bonusTimeout = null, pendingLevelComplete = false
 let timerInterval = null
 let uiTargetColor = 0, uiTargetCount = 8, uiCollected = 0
 let overlayState = 'start' // 'start' | 'gameover' | 'levelComplete' | 'none'
+let touchHandled = false
 
 // ═══════════════════════════════════════════════════
 // HELPERS
@@ -450,7 +452,10 @@ function renderTitle(){
 function buildLBHTML(lb, hi){
   if(lb.length===0) return `<div class="lbEmpty">${l('noRecords')}</div>`
   const lvLabel = lang==='ru'?'Ур.':'Lv.'
-  return lb.map((e,i)=>`<div class="lbRow${i%2===0?' even':''}${i===hi?' hi':''}"><span class="rank">${i+1}</span><span class="sc">${e.score}</span><span class="lv">${lvLabel}${e.level}</span><span class="dt">${e.date}</span></div>`).join('')
+  return lb.map((e,i)=>{
+    const rankColor=i===0?'#c8a8e8':i===1?'#d0d0d0':i===2?'#d4a574':'#888'
+    return `<div class="lbRow${i%2===0?' even':''}${i===hi?' hi':''}"><span class="rank" style="color:${rankColor}">${i+1}</span><span class="lbDot norm"></span><span class="sc">${e.score}</span><span class="lv">${lvLabel}${e.level}</span><span class="dt">${e.date}</span></div>`
+  }).join('')
 }
 
 function updateUI(){
@@ -677,6 +682,7 @@ function togglePause(){
 // ═══════════════════════════════════════════════════
 cv.addEventListener('click', e=>{
   initAudio()
+  if(touchHandled){touchHandled=false;return}
   if(!active||phase.type!=='idle'||paused) return
   const rect=cv.getBoundingClientRect()
   const sx=cv.width/rect.width, sy=cv.height/rect.height
@@ -687,12 +693,7 @@ cv.addEventListener('click', e=>{
   if(selected.r===r&&selected.c===c){ selected=null; return }
   const dr=Math.abs(selected.r-r), dc=Math.abs(selected.c-c)
   if((dr===1&&dc===0)||(dr===0&&dc===1)){
-    const tmp=grid[selected.r][selected.c]; grid[selected.r][selected.c]=grid[r][c]; grid[r][c]=tmp
-    const valid=findMatches(grid).size>0
-    const r1=selected.r,c1=selected.c
-    selected=null
-    phase={type:'swap',r1,c1,r2:r,c2:c,t0:performance.now(),dur:valid?120:200,valid}
-    if(valid) sfx.swap(); else sfx.swapFail()
+    trySwap(selected.r, selected.c, r, c)
   }else{ selected={r,c}; sfx.select() }
 })
 
@@ -770,6 +771,7 @@ cv.addEventListener('touchend', e=>{
       trySwap(selected.r, selected.c, r, c)
     }else{ selected={r,c}; sfx.select() }
   }
+  touchHandled=true
   touchStartR=-1
 }, {passive:false})
 

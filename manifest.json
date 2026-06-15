@@ -1,6 +1,6 @@
 {
   "name": "Match 3",
-  "short_name": "Match3",
+  "short_name": "Match 3",
   "description": "Собирай три и более кубиков в ряд! / Match three or more cubes in a row!",
   "start_url": ".",
   "display": "standalone",

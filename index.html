@@ -261,12 +261,16 @@ function fillEmpty(g){
 function hasValidMoves(g){
   for(let r=0;r<ROWS;r++){
     for(let c=0;c<COLS;c++){
+      // Check swap right (read-only: simulate the swap by checking both cells)
       if(c+1<COLS){
+        // Swap temporarily
         const tmp=g[r][c]; g[r][c]=g[r][c+1]; g[r][c+1]=tmp
         const ok=findMatches(g).size>0
+        // Swap back
         g[r][c+1]=g[r][c]; g[r][c]=tmp
         if(ok) return true
       }
+      // Check swap down (read-only: simulate the swap by checking both cells)
       if(r+1<ROWS){
         const tmp=g[r][c]; g[r][c]=g[r+1][c]; g[r+1][c]=tmp
         const ok=findMatches(g).size>0
